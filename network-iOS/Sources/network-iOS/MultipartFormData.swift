@@ -9,46 +9,43 @@ import Foundation
 
 open class MultipartFormData {
     
-    public let boundary: String
-    // request.setValue(contentType, forHTTPHeaderField: "Content-Type")
-    public lazy var contentType: String = "multipart/form-data; boundary=\(boundary)"
+    enum Constants {
+        static let contentDisposition = "Content-Disposition: form-data;"
+        static let crlf = "\r\n"
+        static let dash = "--"
+    }
     
-    public var data = Data()
+    private(set) var data: Data?
     
-    public init(boundary: String = UUID().uuidString,
-                imageData: Data,
-                filename: String,
-                mimeType: String
-    ) {
-        self.boundary = boundary
-        self.data = postImage(imageData: imageData, filename: filename, mimeType: mimeType)
+    public var boundary: String {
+        return UUID().uuidString
+    }
+    
+    public func getHeader(_ boundary: String) -> String {
+        "multipart/form-data; boundary=\(boundary)"
     }
     
     // mimeType: image/png, text text/plain 와 같은 타입
-    public func postImage(
-        imageData: Data,
+    public func addMultipartFormData(
+        with: Data,
+        name: String,
         filename: String,
-        mimeType: String
-    ) -> Data {
+        key: String,
+        mimeType: String,
+        at boundary: String
+    ) {
+        let startString = Constants.dash + boundary + Constants.crlf
+        let endString = Constants.dash + boundary + Constants.dash
+        
         var body = Data()
-        body.append(Data("\(EncodingCharacters.dash)\(boundary)\(EncodingCharacters.crlf)".utf8))
-        body.append(Data("Content-Disposition: form-data; name=\"image\"; filename=\"\(filename)\"\(EncodingCharacters.crlf)".utf8))
-        body.append(Data("Content-Type: \(mimeType)\(EncodingCharacters.crlf)\(EncodingCharacters.crlf)".utf8))
-        body.append(imageData)
-        body.append(Data(EncodingCharacters.crlf.utf8))
-        body.append(Data("\(EncodingCharacters.dash)\(boundary)\(EncodingCharacters.dash)".utf8))
-        return body
-    }
-    
-}
+        body.append(startString)
+        body.append("\(Constants.contentDisposition) name=\"\(name)\"; filename=\"\(filename)\"\(Constants.crlf)")
+        body.append("Content-Type: \(mimeType)\(Constants.crlf)\(Constants.crlf)")
+        body.append(with)
+        body.append(Constants.crlf)
+        body.append(endString)
 
-// MARK: - EncodingCharacters
-
-extension MultipartFormData {
-    
-    enum EncodingCharacters {
-        static let crlf = "\r\n"
-        static let dash = "--"
+        self.data?.append(body)
     }
     
 }

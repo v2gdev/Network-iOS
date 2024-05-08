@@ -11,9 +11,7 @@ final class NetworkAdapterImpl: NetworkAdapter {
 
     private let session: URLSession
     
-    private var timeoutInterval: TimeInterval = 30
-    
-    public init(session: URLSession = URLSession.shared) {
+    init(session: URLSession = URLSession.shared) {
         self.session = session
     }
     
@@ -44,9 +42,16 @@ final class NetworkAdapterImpl: NetworkAdapter {
         multipartFormData: MultipartFormData
     ) async throws -> D {
         var request = request
-        request.addValue(multipartFormData.contentType, forHTTPHeaderField: "Content-Type")
+        request.addValue(
+            multipartFormData.getHeader(multipartFormData.boundary),
+            forHTTPHeaderField: "Content-Type"
+        )
+        
+        guard let multipartForm = multipartFormData.data else {
+            throw NetworkError.multipartFormDataEmpty
+        }
 
-        let (data, _) = try await session.upload(for: request, from: multipartFormData.data)
+        let (data, _) = try await session.upload(for: request, from: multipartForm)
         return try await data.decode(type, data)
     }
     

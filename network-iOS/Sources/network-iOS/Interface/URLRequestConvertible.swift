@@ -15,5 +15,6 @@ public protocol URLRequestConvertible {
                                     timeout: TimeInterval
     ) async throws -> URLRequest
     
+    /// String to ImageURL
     func asImageURLRequest(imageURL: URL) async throws -> URLRequest
 }

@@ -20,8 +20,10 @@ public enum NetworkError: Error {
     case responseFaild(statusCode: Int)
     /// Http Status Code가 200번대가 아닌 경우
     case invalidHttpStatusCode(statusCode: Int, responseBody: Data)
-    /// HTTPURLResponse Type Casting 에러
+    /// HTTPURLResponse Type Casting 에러 ‼️ ONLY iOS
     case httpResponseTypeCastingFailed
+    /// multipartFormData가 nil일때 ‼️ ONLY iOS
+    case multipartFormDataEmpty
     /// 알 수 없는 에러
     case unknown(Error)
 }
@@ -45,6 +47,8 @@ extension NetworkError {
             return "Invalid Http Status Code.\nStatust Code is \(statusCode).\nResponse Body is \(responseBody)"
         case .httpResponseTypeCastingFailed:
             return "Fail to HTTPURLResponse Type Casting"
+        case .multipartFormDataEmpty:
+            return "Empty MultipartFormData"
         case .unknown(let error):
             return error.localizedDescription
         }
