@@ -11,14 +11,13 @@ extension Decodable {
     
     public func decode<D>(
         _ type: D.Type,
-        _ data: Data?
+        _ from: Data
     ) async throws -> D where D: Decodable {
-        guard let data else {
+        do {
+            return try JSONDecoder().decode(D.self, from: from)
+        } catch {
             throw NetworkError.jsonParsingFailed
         }
-        
-        let decodedResponse = try JSONDecoder().decode(D.self, from: data)
-        return decodedResponse
     }
     
 }
