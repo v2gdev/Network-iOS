@@ -13,6 +13,7 @@ enum APITarget {
 
     case payment(Payment)
     case point(Point)
+    case terms_list
     
 }
 
@@ -75,6 +76,8 @@ extension APITarget: BaseURL {
             return payment.path
         case .point(let point):
             return point.path
+        case .terms_list:
+            return "/mobile/terms/list"
         }
     }
     

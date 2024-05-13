@@ -32,7 +32,6 @@ final class NetworkAdapterImpl: NetworkAdapter {
                 responseBody: data
         )}
 
-        
         return try await data.decode(type, data)
     }
     
