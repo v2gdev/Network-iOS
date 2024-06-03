@@ -8,7 +8,7 @@
 import Foundation
 
 public protocol URLRequestConvertible {
-    func asURLRequest<E: Encodable>(api: URL,
+    static func asURLRequest<E: Encodable>(api: URL,
                                     method: HTTPMethod,
                                     headers: HTTPHeaders?,
                                     body: E?,
@@ -16,5 +16,5 @@ public protocol URLRequestConvertible {
     ) async throws -> URLRequest
     
     /// String to ImageURL
-    func asImageURLRequest(imageURL: URL) async throws -> URLRequest
+    static func asImageURLRequest(imageURL: URL) async throws -> URLRequest
 }

@@ -7,11 +7,11 @@
 
 import Foundation
 
-final class NetworkAdapterImpl: NetworkAdapter {
+public final class NetworkAdapterImpl: NetworkAdapter {
 
     private let session: URLSession
     
-    init(session: URLSession = URLSession.shared) {
+    public init(session: URLSession = URLSession.shared) {
         self.session = session
     }
     

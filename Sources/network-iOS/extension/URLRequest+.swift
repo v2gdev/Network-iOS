@@ -9,7 +9,7 @@ import Foundation
 
 extension URLRequest: URLRequestConvertible {
     
-    public func asURLRequest<E: Encodable>(
+    public static func asURLRequest<E: Encodable>(
         api: URL,
         method: HTTPMethod,
         headers: HTTPHeaders?,
@@ -24,7 +24,7 @@ extension URLRequest: URLRequestConvertible {
         return request
     }
     
-    public func asImageURLRequest(imageURL: URL) async throws -> URLRequest {
+    public static func asImageURLRequest(imageURL: URL) async throws -> URLRequest {
         URLRequest(url: imageURL)
     }
     

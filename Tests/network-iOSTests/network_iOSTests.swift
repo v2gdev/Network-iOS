@@ -43,6 +43,21 @@ final class network_iOSTests: XCTestCase {
 
     }
     
+    func test_QueryPrameter_잘_생성되는지() {
+        // Given
+        let queryPram: [URLQueryItem] = [
+            .init(name: "test1", value: "queryItem1"),
+            .init(name: "test2", value: "queryItem2")
+        ]
+        
+        let prepayAPI = APITarget.payment(.prepay).baseURL?.appendingQueryItems(queryPram).absoluteString
+        
+        // When
+        let evServicePrepayAPI = "https://evs-chungguk-dev-api.autocrypt.io/mobile/payment/prepay?test1=queryItem1&test2=queryItem2"
+
+        // Then
+        XCTAssertEqual(prepayAPI, evServicePrepayAPI)
+    }
 }
 
 // Private Function

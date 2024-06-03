@@ -19,7 +19,7 @@ public protocol BaseURL {
 
 extension BaseURL {
     
-    func makeBaseURL() -> URL? {
+    public func makeBaseURL() -> URL? {
         var urlComponent = URLComponents()
         urlComponent.scheme = scheme
         urlComponent.host = host
