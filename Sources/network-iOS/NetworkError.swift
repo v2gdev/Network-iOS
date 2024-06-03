@@ -53,4 +53,27 @@ extension NetworkError {
             return error.localizedDescription
         }
     }
+    
+    var resultCode: NetworkResultCode {
+        switch self {
+        case .invalidURL:
+            return .invalidURL
+        case .jsonParsingFailed:
+            return .jsonParsingFailed
+        case .networkDisconnection:
+            return .networkDisconnection
+        case .timeout:
+            return .timeout
+        case .responseFaild:
+            return .responseFaild
+        case .invalidHttpStatusCode:
+            return .invalidHttpStatusCode
+        case .httpResponseTypeCastingFailed:
+            return .httpResponseTypeCastingFailed
+        case .multipartFormDataEmpty:
+            return .multipartFormDataEmpty
+        case .unknown:
+            return .unknown
+        }
+    }
 }
