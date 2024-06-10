@@ -9,6 +9,7 @@ import Foundation
 
 extension URLRequest: URLRequestConvertible {
     
+    /// Body가 있는 경우
     public static func asURLRequest<E: Encodable>(
         api: URL,
         method: HTTPMethod,
@@ -24,7 +25,21 @@ extension URLRequest: URLRequestConvertible {
         return request
     }
     
-    public static func asImageURLRequest(imageURL: URL) async throws -> URLRequest {
+    /// Body가 없는 경우
+    public static func asURLRequest(
+        api: URL,
+        method: HTTPMethod,
+        headers: HTTPHeaders?,
+        timeout: TimeInterval = 30
+    ) -> URLRequest {
+        var request = URLRequest(url: api)
+        request.timeoutInterval = timeout
+        request.httpMethod = method.rawValue
+        request.allHTTPHeaderFields = headers?.dictionary
+        return request
+    }
+    
+    public static func asImageURLRequest(imageURL: URL) -> URLRequest {
         URLRequest(url: imageURL)
     }
     

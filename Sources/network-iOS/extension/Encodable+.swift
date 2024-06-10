@@ -13,4 +13,16 @@ extension Encodable {
         try JSONEncoder().encode(value)
     }
     
+    public func toQueryParameters() -> [URLQueryItem]? {
+        guard let data = try? JSONEncoder().encode(self),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else {
+            return nil
+        }
+        
+        return json.map { key, value in
+            URLQueryItem(name: key, value: String(describing: value))
+        }
+    }
+
 }
