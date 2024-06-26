@@ -24,7 +24,12 @@ extension Error {
         return networkError
     }
 
-    func networkError(or defaultAFError: @autoclosure () -> NetworkError) -> NetworkError {
-        self as? NetworkError ?? defaultAFError()
+    public func networkError(or defaultError: @autoclosure () -> NetworkError) -> NetworkError {
+        self as? NetworkError ?? defaultError()
+    }
+    
+    public func isTimeOutError() -> Bool {
+        let arr = self as? URLError
+        return arr?.code == .timedOut
     }
 }
