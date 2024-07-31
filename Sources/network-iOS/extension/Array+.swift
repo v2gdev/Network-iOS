@@ -8,10 +8,10 @@
 import Foundation
 
 extension Array where Element == HTTPHeader {
-    
-    func index(of name: String) -> Int? {
-        let lowercasedName = name.lowercased()
-        return firstIndex { $0.name.lowercased() == lowercasedName }
-    }
-    
+  
+  func index(of name: String) -> Int? {
+    let lowercasedName = name.lowercased()
+    return firstIndex { $0.name.lowercased() == lowercasedName }
+  }
+  
 }

@@ -8,9 +8,9 @@
 import Foundation
 
 extension Data {
-    
-    mutating func append(_ value: String) {
-        self.append(Data(value.utf8))
-    }
-    
+  
+  mutating func append(_ value: String) {
+    self.append(Data(value.utf8))
+  }
+  
 }

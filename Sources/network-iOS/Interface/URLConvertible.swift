@@ -8,6 +8,6 @@
 import Foundation
 
 public protocol URLConvertible {
-    func asURL() throws -> URL
+  func asURL() throws -> URL
 }
 
