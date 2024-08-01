@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension HTTPHeader {
+public extension HTTPHeader {
   static let contentTypeHeader = HTTPHeader()
     .builder
     .set(\.name, to: "Content-Type")
