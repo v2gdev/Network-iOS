@@ -1,14 +1,18 @@
 import XCTest
 @testable import network_iOS
 
-final class network_iOSTests: XCTestCase {
+final class Network_iOSTests: XCTestCase {
   
   private var sut: NetworkAdapter!
   private var TermsAPIResponse: Terms_API.Response?
   
+  private let reissueHandler: (Int) -> String = { code in
+    return "TempHandler"
+  }
+  
   override func setUpWithError() throws {
-    sut = NetworkAdapterImpl()
-    
+    sut = NetworkAdapterImpl(with: .resultCode, reissue: reissueHandler)
+
     try super.setUpWithError()
   }
   
@@ -60,8 +64,9 @@ final class network_iOSTests: XCTestCase {
   }
 }
 
-// Private Function
-extension network_iOSTests {
+// MARK: - Private Function
+
+extension Network_iOSTests {
   
   private func requestTermsList(api: URL) async {
     do {
