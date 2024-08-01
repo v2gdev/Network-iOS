@@ -1,6 +1,6 @@
 //
 //  BaseURL.swift
-//  
+//
 //
 //  Created by Jihee hwang on 4/23/24.
 //
@@ -11,20 +11,20 @@ import Foundation
 // MARK: - Ex. https://evs-chungguk-dev-api.autocrypt.io
 
 public protocol BaseURL {
-    var scheme: String { get }
-    var host: String { get }
-    var path: String { get }
-    var baseURL: URL? { get }
+  var scheme: String { get }
+  var host: String { get }
+  var path: String { get }
+  var baseURL: URL? { get }
 }
 
 extension BaseURL {
-    
-    public func makeBaseURL() -> URL? {
-        var urlComponent = URLComponents()
-        urlComponent.scheme = scheme
-        urlComponent.host = host
-        urlComponent.path = path
-        return urlComponent.url
-    }
-    
+  
+  public func makeBaseURL() -> URL? {
+    var urlComponent = URLComponents()
+    urlComponent.scheme = scheme
+    urlComponent.host = host
+    urlComponent.path = path
+    return urlComponent.url
+  }
+  
 }
