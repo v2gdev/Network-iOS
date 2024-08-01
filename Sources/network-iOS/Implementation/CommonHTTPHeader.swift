@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  CommonHTTPHeader.swift
 //
 //
 //  Created by Jihee hwang on 5/2/24.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension HTTPHeader {
+public extension HTTPHeader {
   static let contentTypeHeader = HTTPHeader()
     .builder
     .set(\.name, to: "Content-Type")

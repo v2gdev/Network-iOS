@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Jihee hwang on 6/3/24.
 //
@@ -9,6 +9,9 @@ import Foundation
 
 public enum NetworkResultCode: Int {
   case success = 100
+  
+  /// JWT Token 만료
+  case jwtTokenExpired = 10010
   
   /// URL 형변환 에러
   case invalidURL = 20400
