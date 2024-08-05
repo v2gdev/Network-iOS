@@ -8,13 +8,13 @@
 import Foundation
 
 public protocol PropertyBuilderCompatible {
-    associatedtype Base
-    var builder: PropertyBuilder<Base> { get }
+  associatedtype Base
+  var builder: PropertyBuilder<Base> { get }
 }
 
 public extension PropertyBuilderCompatible {
-    var builder: PropertyBuilder<Self> {
-        PropertyBuilder(self)
-    }
+  var builder: PropertyBuilder<Self> {
+    PropertyBuilder(self)
+  }
 }
 
