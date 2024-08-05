@@ -34,10 +34,10 @@ public final class NetworkAdapterImpl: NetworkAdapter {
     _ type: D.Type,
     request: URLRequest
   ) async throws -> D {
-    var request = request
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    var newRequest = request
+    newRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
     
-    let (data, response) = try await session.data(for: request)
+    let (data, response) = try await session.data(for: newRequest)
     
     guard let httpResponse = response as? HTTPURLResponse else {
       throw NetworkError.httpResponseTypeCastingFailed
@@ -57,10 +57,10 @@ public final class NetworkAdapterImpl: NetworkAdapter {
     _ type: D.Type,
     request: URLRequest
   ) async throws -> D {
-    var request = request
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    var newRequest = request
+    newRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
     
-    let (data, response) = try await session.data(for: request)
+    let (data, response) = try await session.data(for: newRequest)
     
     guard let httpResponse = response as? HTTPURLResponse else {
       throw NetworkError.httpResponseTypeCastingFailed
