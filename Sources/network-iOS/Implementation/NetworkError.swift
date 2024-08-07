@@ -26,6 +26,7 @@ public enum NetworkError: Error {
   case multipartFormDataEmpty
   /// 알 수 없는 에러
   case unknown(Error)
+  
 }
 
 // MARK: - localizedDescription
@@ -40,7 +41,7 @@ extension NetworkError {
     case .networkDisconnection:
       return "Network Disconnection"
     case .timeout:
-      return  "Time Out"
+      return "Time Out"
     case .responseFaild(let statusCode):
       return "API Response is Null. Statust Code is \(statusCode)"
     case .invalidHttpStatusCode(let statusCode, let responseBody):

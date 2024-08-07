@@ -60,18 +60,7 @@ public final class NetworkAdapterImpl: NetworkAdapter {
     var newRequest = request
     newRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
     
-    let (data, response) = try await session.data(for: newRequest)
-    
-    guard let httpResponse = response as? HTTPURLResponse else {
-      throw NetworkError.httpResponseTypeCastingFailed
-    }
-    
-    if httpResponse.statusCode == 401 || getResultCode(with: data) {
-      let result = try await requestAPI(type, request: getNewURLRequest(origin: request, response: httpResponse))
-      return result
-    }
-    
-    return try await data.decode(type, data)
+    return try await intercepter(type, request: newRequest)
   }
   
   /// Post or Delete Image/File
@@ -111,36 +100,65 @@ public final class NetworkAdapterImpl: NetworkAdapter {
   
   // MARK: - Helpers
   
-  /// JWT Token Reissue 이후, URLRequest 재생성 및 재호출
-  private func getNewURLRequest(
+  /// ReIssue Handling
+  private func intercepter<D: Decodable>(
+    _ type: D.Type,
+    request: URLRequest
+  ) async throws -> D {
+    let (data, response) = try await session.data(for: request)
+    
+    guard let httpResponse = response as? HTTPURLResponse else {
+      throw NetworkError.httpResponseTypeCastingFailed
+    }
+
+    let resultCode = getResultCode(with: data)
+    
+    guard resultCode != 100 else {
+      return try await data.decode(type, data)
+    }
+    
+    let newToken = reissueType == .resultCode ?
+    reissue(resultCode) :
+    reissue(401)
+    
+    guard !newToken.isEmpty else {
+      return try await data.decode(type, data)
+    }
+    
+    let newURLRequest = makeNewURLRequest(
+      newToken: newToken,
+      origin: request,
+      response: httpResponse
+    )
+    
+    return try await requestAPI(type, request: newURLRequest)
+  }
+  
+  /// JWT Token Reissue 조건 확인을 위한 ResultCode 파싱
+  private func getResultCode(with data: Data) -> Int {
+    do {
+      return try JSONDecoder().decode(ReissueResponse.self, from: data).resultCode
+    } catch {
+      return .zero
+    }
+  }
+  
+  /// JWT Token Reissue 로직 이후 새로운 URL Request 생성
+  private func makeNewURLRequest(
+    newToken: String,
     origin request: URLRequest,
     response: HTTPURLResponse
   ) -> URLRequest {
     let auth = "Authorization"
     var newRequest = request
-    newRequest.allHTTPHeaderFields?.removeAll()
-    
-    let newToken = reissueType == .statusCode ? reissue(401) : reissue(NetworkResultCode.jwtTokenExpired.rawValue)
-    
-    request.allHTTPHeaderFields?.forEach {
-      if $0.key == auth {
-        newRequest.addValue(newToken, forHTTPHeaderField: auth)
-      }
-      newRequest.addValue($0.value, forHTTPHeaderField: $0.key)
+
+    newRequest.allHTTPHeaderFields?.forEach {
+      $0.key == auth ?
+      newRequest.setValue("Bearer \(newToken)", forHTTPHeaderField: auth) :
+      newRequest.setValue($0.value, forHTTPHeaderField: $0.key)
     }
     return newRequest
   }
   
-  /// JWT Token Reissue 조건 확인을 위한 ResultCode 파싱
-  private func getResultCode(with data: Data) -> Bool {
-    do {
-      let resultCode = try JSONDecoder().decode(ReissueResponse.self, from: data).resultCode
-      let jwtTokenExpiredCode = NetworkResultCode.jwtTokenExpired.rawValue
-      
-      return resultCode == jwtTokenExpiredCode
-    } catch {
-      return false
-    }
-  }
 }
 
