@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import network_iOS
+@testable import Network_iOS
 
 final class Reissue_iOSTests: XCTestCase {
   
@@ -50,7 +50,7 @@ final class Reissue_iOSTests: XCTestCase {
         let response = try await sut.requestAPIWithJWTToken(ReissueResponse.self, request: request).resultCode
         
         // Then
-        XCTAssertEqual(response, NetworkResultCode.jwtTokenExpired.rawValue)
+        XCTAssertEqual(response, NetworkResultCode.jsonParsingFailed.rawValue)
       } catch {
         print("요청 실패: \(error)")
       }

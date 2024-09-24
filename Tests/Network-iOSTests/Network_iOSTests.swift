@@ -1,5 +1,5 @@
 import XCTest
-@testable import network_iOS
+@testable import Network_iOS
 
 final class Network_iOSTests: XCTestCase {
   
