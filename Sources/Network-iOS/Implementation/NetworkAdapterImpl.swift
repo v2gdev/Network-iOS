@@ -39,6 +39,85 @@ public final class NetworkAdapterImpl: NetworkAdapter {
     
     let (data, response) = try await session.data(for: newRequest)
     
+    try validateResponse(response, data: data)
+    return try await data.decode(type, data)
+  }
+  
+  /// API 요청 with Token
+  public func requestAPIWithJWTToken<D: Decodable>(
+    _ type: D.Type,
+    request: URLRequest
+  ) async throws -> D {
+    var newRequest = request
+    newRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    
+    let (data, response) = try await session.data(for: newRequest)
+    
+    return try await intercepter(type, originData: data, originResponse: response, request: newRequest) { request in
+      let (data, _) = try await self.session.data(for: request)
+      return try await data.decode(type, data)
+    }
+  }
+  
+  /// Image/File
+  public func requestMultipart<D: Decodable>(
+    _ type: D.Type,
+    request: URLRequest,
+    multipartFormData: MultipartFormData
+  ) async throws -> D {
+    var newRequest = request
+    newRequest.addValue(
+      multipartFormData.getHeader(multipartFormData.getBoundary()),
+      forHTTPHeaderField: "Content-Type"
+    )
+    
+    let multipartForm = multipartFormData.data
+
+    guard !multipartForm.isEmpty else {
+      throw NetworkError.multipartFormDataEmpty
+    }
+    
+    let (data, response) = try await session.upload(for: newRequest, from: multipartForm)
+    try validateResponse(response, data: data)
+    return try await data.decode(type, data)
+  }
+  
+  /// Image/File with Token
+  public func requestMultipartWithJWTToken<D: Decodable>(
+    _ type: D.Type,
+    request: URLRequest,
+    multipartFormData: MultipartFormData
+  ) async throws -> D {
+    var newRequest = request
+    newRequest.addValue(
+      multipartFormData.getHeader(multipartFormData.getBoundary()),
+      forHTTPHeaderField: "Content-Type"
+    )
+    
+    let multipartForm = multipartFormData.data
+
+    guard !multipartForm.isEmpty else {
+      throw NetworkError.multipartFormDataEmpty
+    }
+    
+    let (data, response) = try await session.upload(for: newRequest, from: multipartForm)
+    
+    return try await intercepter(type, originData: data, originResponse: response, request: newRequest) { request in
+      let (data, _) = try await self.session.upload(for: request, from: multipartForm)
+      return try await data.decode(type, data)
+    }
+  }
+  
+  /// URL to Image
+  public func requestImage(imageURLRequest: URLRequest) async throws -> Data {
+    let (data, _) = try await session.data(for: imageURLRequest)
+    return data
+  }
+  
+  // MARK: - Helpers
+  
+  /// Respons 유효성 검사
+  func validateResponse(_ response: URLResponse, data: Data) throws {
     guard let httpResponse = response as? HTTPURLResponse else {
       throw NetworkError.httpResponseTypeCastingFailed
     }
@@ -47,46 +126,8 @@ public final class NetworkAdapterImpl: NetworkAdapter {
       throw NetworkError.invalidHttpStatusCode(
         statusCode: httpResponse.statusCode,
         responseBody: data
-      )}
-    
-    return try await data.decode(type, data)
-  }
-  
-  /// Header에 JWT Token이 실릴 경우 사용
-  public func requestAPIWithJWTToken<D: Decodable>(
-    _ type: D.Type,
-    request: URLRequest
-  ) async throws -> D {
-    var newRequest = request
-    newRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    
-    return try await intercepter(type, request: newRequest)
-  }
-  
-  /// Post or Delete Image/File
-  public func requestMultipart<D: Decodable>(
-    _ type: D.Type,
-    request: URLRequest,
-    multipartFormData: MultipartFormData
-  ) async throws -> D {
-    var request = request
-    request.addValue(
-      multipartFormData.getHeader(multipartFormData.boundary),
-      forHTTPHeaderField: "Content-Type"
-    )
-    
-    guard let multipartForm = multipartFormData.data else {
-      throw NetworkError.multipartFormDataEmpty
+      )
     }
-    
-    let (data, _) = try await session.upload(for: request, from: multipartForm)
-    return try await data.decode(type, data)
-  }
-  
-  /// URL to Image
-  public func requestImage(imageURLRequest: URLRequest) async throws -> Data {
-    let (data, _) = try await session.data(for: imageURLRequest)
-    return data
   }
   
   /// Statust Code 유효성 검사
@@ -98,40 +139,36 @@ public final class NetworkAdapterImpl: NetworkAdapter {
     sequence.contains(statusCode)
   }
   
-  // MARK: - Helpers
-  
   /// ReIssue Handling
   private func intercepter<D: Decodable>(
     _ type: D.Type,
-    request: URLRequest
+    originData: Data,
+    originResponse: URLResponse,
+    request: URLRequest,
+    requestHandler: @escaping (URLRequest) async throws -> D
   ) async throws -> D {
-    let (data, response) = try await session.data(for: request)
-    
-    guard let httpResponse = response as? HTTPURLResponse else {
+    guard let httpResponse = originResponse as? HTTPURLResponse else {
       throw NetworkError.httpResponseTypeCastingFailed
     }
-
-    let resultCode = getResultCode(with: data)
     
-    guard resultCode != 100 else {
-      return try await data.decode(type, data)
-    }
+    let resultCode = getResultCode(with: originData)
+    let shouldRefresh = reissueType == .resultCode ?
+    ReissueType.isinvalidResultCode(resultCode) :
+    httpResponse.statusCode == 401
     
-    let newToken = reissueType == .resultCode ?
-    reissue(resultCode) :
-    reissue(401)
+    guard shouldRefresh else { return try await originData.decode(type, originData) }
     
-    guard !newToken.isEmpty else {
-      return try await data.decode(type, data)
-    }
+    let code = reissueType == .resultCode ? resultCode : 401
+    let newToken = reissue(code)
     
-    let newURLRequest = makeNewURLRequest(
+    guard !newToken.isEmpty else { return try await originData.decode(type, originData) }
+    
+    let newRequest = makeNewURLRequest(
       newToken: newToken,
-      origin: request,
-      response: httpResponse
+      origin: request
     )
     
-    return try await requestAPI(type, request: newURLRequest)
+    return try await requestHandler(newRequest)
   }
   
   /// JWT Token Reissue 조건 확인을 위한 ResultCode 파싱
@@ -146,12 +183,11 @@ public final class NetworkAdapterImpl: NetworkAdapter {
   /// JWT Token Reissue 로직 이후 새로운 URL Request 생성
   private func makeNewURLRequest(
     newToken: String,
-    origin request: URLRequest,
-    response: HTTPURLResponse
+    origin request: URLRequest
   ) -> URLRequest {
     let auth = "Authorization"
     var newRequest = request
-
+    
     newRequest.allHTTPHeaderFields?.forEach {
       $0.key == auth ?
       newRequest.setValue("Bearer \(newToken)", forHTTPHeaderField: auth) :

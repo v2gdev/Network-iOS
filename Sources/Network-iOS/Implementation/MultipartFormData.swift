@@ -15,37 +15,69 @@ open class MultipartFormData {
     static let dash = "--"
   }
   
-  private(set) var data: Data?
+  private(set) var data = Data()
   
-  public var boundary: String {
-    return UUID().uuidString
+  private let boundary: String
+  
+  public init() {
+    self.boundary = UUID().uuidString
   }
   
   public func getHeader(_ boundary: String) -> String {
     "multipart/form-data; boundary=\(boundary)"
   }
   
-  // mimeType: image/png, text text/plain 와 같은 타입
-  public func addMultipartFormData(
-    with: Data,
-    name: String,
-    filename: String,
-    key: String,
-    mimeType: String,
-    at boundary: String
-  ) {
-    let startString = Constants.dash + boundary + Constants.crlf
-    let endString = Constants.dash + boundary + Constants.dash
-    
-    var body = Data()
-    body.append(startString)
-    body.append("\(Constants.contentDisposition) name=\"\(name)\"; filename=\"\(filename)\"\(Constants.crlf)")
-    body.append("Content-Type: \(mimeType)\(Constants.crlf)\(Constants.crlf)")
-    body.append(with)
-    body.append(Constants.crlf)
-    body.append(endString)
-    
-    self.data?.append(body)
+  public func getBoundary() -> String {
+    return boundary
   }
   
+  public func append(_ string: String) {
+    if let data = string.data(using: .utf8) {
+      self.data.append(data)
+    }
+  }
+  
+  // 일반 텍스트 필드용 메서드
+  public func addFormField(
+    name: String,
+    value: String
+  ) {
+    append("\(Constants.dash)\(boundary)\(Constants.crlf)")
+    append("\(Constants.contentDisposition) name=\"\(name)\"\(Constants.crlf)")
+    append(Constants.crlf)
+    append(value)
+    append(Constants.crlf)
+  }
+  
+  // 파일 데이터용 메서드
+  public func addFileData(
+    with data: Data,
+    name: String,
+    filename: String,
+    mimeType: String
+  ) {
+    // Add boundary
+    append("\(Constants.dash)\(boundary)\(Constants.crlf)")
+    
+    // Add content disposition with filename
+    append("\(Constants.contentDisposition) name=\"\(name)\"; filename=\"\(filename)\"\(Constants.crlf)")
+    
+    // Add content type
+    append("Content-Type: \(mimeType)\(Constants.crlf)")
+    
+    // Add line break before content
+    append(Constants.crlf)
+    
+    // Add file data
+    self.data.append(data)
+    
+    // Add line break after content
+    append(Constants.crlf)
+  }
+  
+  
+  public func finalize() {
+    // Add final boundary
+    append("\(Constants.dash)\(boundary)\(Constants.dash)")
+  }
 }

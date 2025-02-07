@@ -12,4 +12,9 @@ public enum ReissueType {
   case statusCode
   /// Response DTO의 Result Code로 판단
   case resultCode
+  
+  static func isinvalidResultCode(_ resultCode: Int) -> Bool {
+    let invaildResultCode = [10010, 10011, 10012, 10013, 10014, 10015]
+    return invaildResultCode.contains(resultCode)
+  }
 }
